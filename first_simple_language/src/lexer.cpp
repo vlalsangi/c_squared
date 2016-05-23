@@ -125,7 +125,6 @@ static int getNextToken() {
 }
 
 //helper functinos for error handling and logging
-
 std::unique_ptr<ExprAST> LogError(const char *Str) {
     fprintf(stderr, "LogError: %s\n", Str);
     return nullptr;
@@ -134,4 +133,24 @@ std::unique_ptr<ExprAST> LogError(const char *Str) {
 std::unique_ptr<PrototypeAST>LogErrorP(const char *Str) {
     LogError(Str);
     return nullptr;
+}
+
+// numberexpr ::= numberexpr
+static std::unique_ptr<ExprAST> ParseNumberExpr() {
+    auto Result = llvm::make_unique<NumberExprAST>(NumVal);
+    getNextToken();
+    return std::move(Result);
+}
+
+// parenexpr ::= '(' expression ')'
+static std::unique_ptr<ExprAST> ParseParenExpr() {
+    getNextToken(); //eat (
+    auto V = ParseExpression();
+    if (!V)
+        return nullptr;
+
+    if (CurTok != ')')
+        return LogError("expected ')'");
+    getNextToken() //eat )
+    return V;
 }
